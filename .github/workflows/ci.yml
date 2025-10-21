@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks (format, lint, typos, structure)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify repository structure
+        run: |
+          set -e
+          test -d docs || (echo "::error::Missing docs/ directory"; exit 1)
+          test -d content || (echo "::error::Missing content/ directory"; exit 1)
+          test -f README.md || (echo "::error::Missing README.md at repo root"; exit 1)
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install markdown tools
+        run: |
+          npm --yes i -g prettier markdownlint-cli
+
+      - name: Prettier check
+        run: |
+          prettier --check "**/*.{md,mdx,yml,yaml,json}" || (echo "::error::Prettier formatting issues"; exit 1)
+
+      - name: Markdownlint
+        run: |
+          markdownlint "**/*.md" --ignore "node_modules" --config .markdownlint.json
+
+      - name: Run typos spellcheck
+        uses: crate-ci/typos@v1.22.9
+        with:
+          config: ./typos.toml
