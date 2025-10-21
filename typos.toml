@@ -1,0 +1,5 @@
+[default.extend-words]
+RTO = "RTO"
+MTTR = "MTTR"
+RPO = "RPO"
+SLA = "SLA"
